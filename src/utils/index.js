@@ -90,26 +90,8 @@ function hexToBytes(s) {
  * @param size  {number}
  * @return {Uint8Array}
  */
-function stringToBytes(str, size = 1) {
-    let buf;
-    let bufView;
-    if (size === 1) {
-        buf = new ArrayBuffer(str.length);
-        bufView = new Uint8Array(buf);
-    }
-    if (size === 2) {
-        buf = new ArrayBuffer(str.length * 2);
-        bufView = new Uint16Array(buf);
-    }
-    if (size === 4) {
-        buf = new ArrayBuffer(str.length * 4);
-        bufView = new Uint32Array(buf);
-    }
-    for (let i = 0, strLen = str.length; i < strLen; i++) {
-        bufView[i] = str.charCodeAt(i);
-    }
-    return new Uint8Array(bufView.buffer);
-}
+// size is unused now
+function stringToBytes = (str,size) => new TextEncoder().encode(str);
 
 
 /**
