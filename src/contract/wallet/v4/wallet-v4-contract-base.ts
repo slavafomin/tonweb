@@ -23,10 +23,17 @@ export class WalletV4ContractBase<
 
     public async getPublicKey(): Promise<BN> {
         const myAddress = await this.getAddress();
-        return this.provider.call2(
+        const result = await this.provider.call2(
             myAddress.toString(),
             'get_public_key'
         );
+        if (!BN.isBN(result)) {
+            throw new Error(
+                'Received runGetMethod response is incorrect. BN expected.'
+            );
+        }
+
+        return result;
     }
 
 

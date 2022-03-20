@@ -1,34 +1,8 @@
+import { ParseResponseResult } from '../HttpProviderUtils';
+import { EstimateFeeParams, EstimateFeeResult, GetAddressBalanceResult, GetAddressInformationResult, GetBlockHeaderResult, GetBlockTransactionsResult, GetExtendedAddressInformationResult, GetMasterchainInfoResult, GetTransactionsResult, GetWalletInformationResult, HttpProviderMethodNoArgsName, HttpProviderMethodParams, HttpProviderMethodResponse, HttpProviderMethodWithArgsName, RunGetMethodParamsStackItem, RunGetMethodResult, SendBocResult, SendQuerySimpleParams, SendQuerySimpleResult, ShardsResult } from './types';
 export interface HttpProviderOptions {
     apiKey?: string;
 }
-export interface EstimateFeeBody {
-    /**
-     * Address in any format.
-     */
-    address: string;
-    /**
-     * base64-encoded cell with message body.
-     */
-    body: string;
-    /**
-     * base64-encoded cell with init-code.
-     */
-    init_code?: string;
-    /**
-     * base64-encoded cell with init-data.
-     */
-    init_data?: string;
-    /**
-     * If true during test query processing assume
-     * that all chksig operations return True.
-     *
-     * default: `true`
-     */
-    ignore_chksig?: boolean;
-}
-export declare type StackElement = (['num', number] | ['cell', CellObject] | ['slice', SliceObject] | [string, any]);
-export declare type CellObject = any;
-export declare type SliceObject = any;
 export declare const defaultHost = "https://toncenter.com/api/v2/jsonRPC";
 export declare class HttpProvider {
     host: string;
@@ -36,16 +10,23 @@ export declare class HttpProvider {
     static SHARD_ID_ALL: string;
     constructor(host?: string, options?: HttpProviderOptions);
     /**
-     * @todo: change params type to Array<any>
+     * Calls known API method with parameters and returns typed response.
+     * @param method
+     * @param params
      */
-    send(method: string, params: any): Promise<Response>;
+    send<M extends HttpProviderMethodWithArgsName>(method: M, params: HttpProviderMethodParams<M>): Promise<HttpProviderMethodResponse<M>>;
+    /**
+     * Calls known API method without parameters and returns typed response.
+     * @param method
+     */
+    send<M extends HttpProviderMethodNoArgsName>(method: M): Promise<HttpProviderMethodResponse<M>>;
     /**
      * Use this method to get information about address:
      * balance, code, data, last_transaction_id.
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_address_information_getAddressInformation_get}
      */
-    getAddressInfo(address: string): Promise<any>;
+    getAddressInfo(address: string): Promise<GetAddressInformationResult>;
     /**
      * Similar to previous one but tries to parse additional
      * information for known contract types. This method is
@@ -55,7 +36,7 @@ export declare class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_extended_address_information_getExtendedAddressInformation_get}
      */
-    getExtendedAddressInfo(address: string): Promise<any>;
+    getExtendedAddressInfo(address: string): Promise<GetExtendedAddressInformationResult>;
     /**
      * Use this method to retrieve wallet information.
      *
@@ -66,7 +47,7 @@ export declare class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_wallet_information_getWalletInformation_get}
      */
-    getWalletInfo(address: string): Promise<any>;
+    getWalletInfo(address: string): Promise<GetWalletInformationResult>;
     /**
      * Use this method to get transaction history of a given address.
      *
@@ -74,14 +55,14 @@ export declare class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_transactions_getTransactions_get}
      */
-    getTransactions(address: string, limit?: number, lt?: number, hash?: string, to_lt?: number, archival?: any): Promise<any>;
+    getTransactions(address: string, limit?: number, lt?: number, hash?: string, to_lt?: number, archival?: boolean): Promise<GetTransactionsResult>;
     /**
      * Use this method to get balance (in nanograms)
      * of a given address.
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_address_balance_getAddressBalance_get}
      */
-    getBalance(address: string): Promise<any>;
+    getBalance(address: string): Promise<GetAddressBalanceResult>;
     /**
      * Use this method to send serialized boc file:
      * fully packed and serialized external message.
@@ -92,13 +73,13 @@ export declare class HttpProvider {
     /**
      * base64 string of boc bytes `Cell.toBoc`
      */
-    base64: string): Promise<any>;
+    base64: string): Promise<SendBocResult>;
     /**
      * Estimates fees required for query processing.
      *
      * {@link https://toncenter.com/api/v2/#/send/estimate_fee_estimateFee_post}
      */
-    getEstimateFee(query: EstimateFeeBody): Promise<any>;
+    getEstimateFee(query: EstimateFeeParams): Promise<EstimateFeeResult>;
     /**
      * Invokes get-method of smart contract.
      *
@@ -118,7 +99,7 @@ export declare class HttpProvider {
     /**
      * Array of stack elements.
      */
-    params?: StackElement[]): Promise<any>;
+    stack?: RunGetMethodParamsStackItem[]): Promise<RunGetMethodResult>;
     /**
      * Invokes get-method of smart contract.
      *
@@ -138,41 +119,41 @@ export declare class HttpProvider {
     /**
      * Array of stack elements.
      */
-    params?: StackElement[]): Promise<any>;
+    params?: RunGetMethodParamsStackItem[]): Promise<ParseResponseResult>;
     /**
      * Returns ID's of last and init block of masterchain.
      *
      * {@link https://toncenter.com/api/v2/#/blocks/get_masterchain_info_getMasterchainInfo_get}
      */
-    getMasterchainInfo(): Promise<any>;
+    getMasterchainInfo(): Promise<GetMasterchainInfoResult>;
     /**
      * Returns ID's of shardchain blocks included
      * in this masterchain block.
      *
      * {@link https://toncenter.com/api/v2/#/blocks/shards_shards_get}
      */
-    getBlockShards(masterchainBlockNumber: number): Promise<any>;
+    getBlockShards(masterchainBlockNumber: number): Promise<ShardsResult>;
     /**
      * Returns transactions hashes included in this block.
      *
      * {@link https://toncenter.com/api/v2/#/blocks/get_block_transactions_getBlockTransactions_get}
      */
-    getBlockTransactions(workchain: number, shardId: string, shardBlockNumber: number): Promise<any>;
+    getBlockTransactions(workchain: number, shardId: string, shardBlockNumber: number): Promise<GetBlockTransactionsResult>;
     /**
      * Returns transactions hashes included
      * in this masterchain block.
      */
-    getMasterchainBlockTransactions(masterchainBlockNumber: number): Promise<any>;
+    getMasterchainBlockTransactions(masterchainBlockNumber: number): Promise<GetBlockTransactionsResult>;
     /**
      * Returns block header and his previous blocks ID's.
      *
      * {@link https://toncenter.com/api/v2/#/blocks/get_block_header_getBlockHeader_get}
      */
-    getBlockHeader(workchain: number, shardId: string, shardBlockNumber: number): Promise<any>;
+    getBlockHeader(workchain: number, shardId: string, shardBlockNumber: number): Promise<GetBlockHeaderResult>;
     /**
      * Returns masterchain block header and his previous block ID.
      */
-    getMasterchainBlockHeader(masterchainBlockNumber: number): Promise<any>;
+    getMasterchainBlockHeader(masterchainBlockNumber: number): Promise<GetBlockHeaderResult>;
     /**
      * Sends external message.
      *
@@ -180,9 +161,5 @@ export declare class HttpProvider {
      *
      * @deprecated
      */
-    sendQuery(query: any): Promise<any>;
-    /**
-     * @private
-     */
-    private sendImpl;
+    sendQuery(query: SendQuerySimpleParams): Promise<SendQuerySimpleResult>;
 }

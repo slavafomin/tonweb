@@ -137,6 +137,10 @@ export class WalletV4ContractR2 extends WalletV4ContractBase<
             'get_subwallet_id'
         );
 
+        if (!BN.isBN(id)) {
+            throw new Error('Received runGetMethod response is incorrect. BN expected.');
+        }
+
         return id.toNumber();
 
     }
@@ -160,6 +164,9 @@ export class WalletV4ContractR2 extends WalletV4ContractBase<
                 ['num', hashPart],
             ]
         );
+        if (!BN.isBN(result)) {
+            throw new Error('Received runGetMethod response is incorrect. BN expected.');
+        }
 
         return !result.isZero();
 
@@ -181,6 +188,9 @@ export class WalletV4ContractR2 extends WalletV4ContractBase<
             myAddress.toString(),
             'get_plugin_list'
         );
+        if (!Array.isArray(result)) {
+            throw new Error('Received runGetMethod response is incorrect. Array expected.');
+        }
         return result.map(parseAddress);
     }
 

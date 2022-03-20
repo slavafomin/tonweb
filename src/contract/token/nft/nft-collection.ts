@@ -204,6 +204,9 @@ export class NftCollection extends Contract<
                     )],
                 ]
             );
+            if (!(result instanceof Cell)) {
+                throw new Error('Received runGetMethod response is incorrect. Cell expected.');
+            }
             itemContent.contentUri = parseOffchainUriCell(result);
         }
         return itemContent;
@@ -220,6 +223,9 @@ export class NftCollection extends Contract<
             'get_nft_address_by_index',
             [['num', index]]
         );
+        if (!(result instanceof Cell)) {
+            throw new Error('Received runGetMethod response is incorrect. Cell expected.');
+        }
 
         return parseAddress(result);
     }

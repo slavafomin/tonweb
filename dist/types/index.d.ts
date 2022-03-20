@@ -1,8 +1,9 @@
-import BN from 'bn.js';
+import BN_JS from 'bn.js';
 import nacl from 'tweetnacl';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
-import { HttpProvider, StackElement } from './providers/http-provider';
-export { CellObject, EstimateFeeBody, HttpProviderOptions, SliceObject, StackElement, } from './providers/http-provider';
+export declare type BN = BN_JS;
+import { GetAddressBalanceResult, GetTransactionsResult, HttpProvider, RunGetMethodResult, SendBocResult } from './providers/http-provider';
+export { HttpProviderOptions, } from './providers/http-provider';
 import { BlockSubscription } from './providers/block-subscription/block-subscription';
 import { InMemoryBlockStorage } from './providers/block-subscription/in-memory-block-storage';
 export { BlockHandler, BlockSubscriptionOptions, } from './providers/block-subscription/block-subscription';
@@ -17,7 +18,7 @@ import { Cell } from './boc/cell';
 import { Contract } from './contract/contract';
 export { ContractMethods, ContractOptions, Method, Query, StateInit, } from './contract/contract';
 import { Wallets } from './contract/wallet/wallets';
-export { DeployMethod, ExternalMessage, SeqnoMethod, SeqnoMethodResult, TransferMethod, TransferMethodParams, WalletContractMethods, WalletContractOptions, } from './contract/wallet/wallet-contract';
+export { ExternalMessage, SeqnoMethod, SeqnoMethodResult, TransferMethod, TransferMethodParams, WalletContractMethods, WalletContractOptions, } from './contract/wallet/wallet-contract';
 export { WalletV3ContractOptions, } from './contract/wallet/v3/wallet-v3-contract-base';
 export { WalletV4ContractOptions, WalletV4ContractMethods, } from './contract/wallet/v4/wallet-v4-contract-base';
 export { WalletV4ContractR2Methods, DeployAndInstallPluginParams, SetPluginParams, } from './contract/wallet/v4/wallet-v4-contract-r2';
@@ -38,19 +39,20 @@ export { CreateGetStaticDataBodyParams, CreateTransferBodyParams, NftItemMethods
 import { NftMarketplace } from './contract/token/nft/nft-marketplace';
 export { NftMarketplaceMethods, NftMarketplaceOptions, } from './contract/token/nft/nft-marketplace';
 import { NftSale } from './contract/token/nft/nft-sale';
+import { RunGetMethodParamsStackItem } from './providers/http-provider';
 export { CreateCancelBodyParams, NftSaleMethods, NftSaleOptions, NftSaleData, } from './contract/token/nft/nft-sale';
 export default class TonWeb {
     provider: HttpProvider;
     static version: string;
     static utils: {
-        BN: typeof BN;
+        BN: typeof BN_JS;
         nacl: nacl;
         Address: typeof Address;
         formatTransferUrl: typeof formatTransferUrl;
         parseTransferUrl: typeof parseTransferUrl;
         sha256(bytes: Uint8Array): Promise<ArrayBuffer>;
-        toNano(amount: string | number | BN): BN;
-        fromNano(amount: string | number | BN): string;
+        toNano(amount: string | number | BN_JS): BN_JS;
+        fromNano(amount: string | number | BN_JS): string;
         bytesToHex(buffer: Uint8Array): string;
         hexToBytes(hex: string): Uint8Array;
         stringToBytes(str: string, size?: number): Uint8Array;
@@ -106,14 +108,14 @@ export default class TonWeb {
     };
     version: string;
     utils: {
-        BN: typeof BN;
+        BN: typeof BN_JS;
         nacl: nacl;
         Address: typeof Address;
         formatTransferUrl: typeof formatTransferUrl;
         parseTransferUrl: typeof parseTransferUrl;
         sha256(bytes: Uint8Array): Promise<ArrayBuffer>;
-        toNano(amount: string | number | BN): BN;
-        fromNano(amount: string | number | BN): string;
+        toNano(amount: string | number | BN_JS): BN_JS;
+        fromNano(amount: string | number | BN_JS): string;
         bytesToHex(buffer: Uint8Array): string;
         hexToBytes(hex: string): Uint8Array;
         stringToBytes(str: string, size?: number): Uint8Array;
@@ -148,16 +150,16 @@ export default class TonWeb {
      * Use this method to get transaction history of a given address.
      * Returns array of transaction objects.
      */
-    getTransactions(address: AddressType, limit?: number, lt?: number, txhash?: string, to_lt?: number): Promise<any>;
+    getTransactions(address: AddressType, limit?: number, lt?: number, txhash?: string, to_lt?: number): Promise<GetTransactionsResult>;
     /**
      * Returns current balance for the given address in nanograms.
      */
-    getBalance(address: AddressType): Promise<string>;
+    getBalance(address: AddressType): Promise<GetAddressBalanceResult>;
     /**
      * Use this method to send serialized boc file:
      * fully packed and serialized external message.
      */
-    sendBoc(bytes: Uint8Array): Promise<any>;
+    sendBoc(bytes: Uint8Array): Promise<SendBocResult>;
     /**
      * Invoke get-method of smart contract.
      */
@@ -173,5 +175,5 @@ export default class TonWeb {
     /**
      * Array of stack elements.
      */
-    params?: StackElement[]): Promise<any>;
+    stack?: RunGetMethodParamsStackItem[]): Promise<RunGetMethodResult>;
 }

@@ -1,24 +1,29 @@
 
-import BN from 'bn.js';
+import BN_JS from 'bn.js';
 import nacl from 'tweetnacl';
 import BluetoothTransport from '@ledgerhq/hw-transport-web-ble';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
+
+// Exporting BN as type-only, we have had
+// to rename the original import for this to work
+export type BN = BN_JS;
 
 
 //===========//
 // PROVIDERS //
 //===========//
 
-import { HttpProvider, StackElement } from './providers/http-provider';
+import {
+    GetAddressBalanceResult, GetTransactionsResult,
+    HttpProvider,
+    RunGetMethodResult,
+    SendBocResult
+} from './providers/http-provider';
 
 export {
-    CellObject,
-    EstimateFeeBody,
     // HttpProvider,
     HttpProviderOptions,
-    SliceObject,
-    StackElement,
     // defaultHost,
 
 } from './providers/http-provider';
@@ -62,7 +67,7 @@ export { ParsedTransferUrl } from './utils/transfer-url';
 
 const utils = {
     ...utilsExports,
-    BN,
+    BN: BN_JS,
     nacl,
     Address,
     formatTransferUrl,
@@ -102,7 +107,6 @@ export {
 import { Wallets } from './contract/wallet/wallets';
 
 export {
-    DeployMethod,
     ExternalMessage,
     SeqnoMethod,
     SeqnoMethodResult,
@@ -250,6 +254,9 @@ export {
 } from './contract/token/nft/nft-marketplace';
 
 import { NftSale } from './contract/token/nft/nft-sale';
+import {
+    RunGetMethodParamsStackItem
+} from './providers/http-provider';
 
 export {
     CreateCancelBodyParams,
@@ -321,15 +328,13 @@ export default class TonWeb {
      * Use this method to get transaction history of a given address.
      * Returns array of transaction objects.
      */
-    public async getTransactions(
+    public getTransactions(
       address: AddressType,
       limit = 20,
       lt?: number,
       txhash?: string,
       to_lt?: number
-
-    ): Promise<any> {
-
+    ): Promise<GetTransactionsResult> {
         return this.provider.getTransactions(
           address.toString(),
           limit,
@@ -337,13 +342,12 @@ export default class TonWeb {
           txhash,
           to_lt
         );
-
     };
 
     /**
      * Returns current balance for the given address in nanograms.
      */
-    public async getBalance(address: AddressType): Promise<string> {
+    public getBalance(address: AddressType): Promise<GetAddressBalanceResult> {
         return this.provider.getBalance(address.toString());
     }
 
@@ -351,14 +355,14 @@ export default class TonWeb {
      * Use this method to send serialized boc file:
      * fully packed and serialized external message.
      */
-    public async sendBoc(bytes: Uint8Array) {
+    public sendBoc(bytes: Uint8Array): Promise<SendBocResult> {
         return this.provider.sendBoc(utils.bytesToBase64(bytes));
     }
 
     /**
      * Invoke get-method of smart contract.
      */
-    public async call(
+    public call(
       /**
        * Contract address.
        */
@@ -372,18 +376,10 @@ export default class TonWeb {
       /**
        * Array of stack elements.
        */
-      params: StackElement[] = []
+      stack: RunGetMethodParamsStackItem[] = []
 
-    ): Promise<any> {
-
-        // @todo: type return value
-
-        return this.provider.call(
-          address.toString(),
-          method,
-          params
-        );
-
+    ): Promise<RunGetMethodResult> {
+        return this.provider.call(address.toString(), method, stack);
     }
 
 }
