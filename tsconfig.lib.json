@@ -9,8 +9,7 @@
       "types"
     ],
     "noEmitOnError": true,
-    "declaration": true,
-    "emitDeclarationOnly": true
+    "declaration": true
   },
   "include": [
     "src/"

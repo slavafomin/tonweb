@@ -1,6 +1,9 @@
-.idea/
-.DS_Store
+
+/.idea/
+/coverage/
+/dist/
 /node_modules/
 /test-reports/
-/coverage/
+
 *.iml
+.DS_Store
