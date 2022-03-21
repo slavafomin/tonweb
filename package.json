@@ -1,6 +1,6 @@
 {
   "name": "@ton.js/core",
-  "version": "0.0.35",
+  "version": "0.0.35-2",
   "description": "TonWeb - JavaScript API for TON blockchain",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
