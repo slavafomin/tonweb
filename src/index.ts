@@ -102,7 +102,6 @@ export {
 import { Wallets } from './contract/wallet/wallets';
 
 export {
-    DeployMethod,
     ExternalMessage,
     SeqnoMethod,
     SeqnoMethodResult,
@@ -271,7 +270,7 @@ const NFT = {
 
 // This version is updated by build script automatically,
 // do not edit it or change the expression format.
-const version = '0.0.35-beta.0';
+const version = '0.0.35-beta.1';
 
 
 export default class TonWeb {
