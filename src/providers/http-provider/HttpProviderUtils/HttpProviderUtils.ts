@@ -61,10 +61,10 @@ export class HttpProviderUtils {
         result: ParseResponseParam
     ): ParseResponseResult {
         if (result.exit_code !== 0) {
-            throw new Error(
-                'Error while parsing runGetMethod response occurred. Exit code ' +
-                `in response was "${result.exit_code}".`
-            );
+            // @todo: use custom error class
+            const error = new Error('Failed to parse response');
+            (error as any).result = result;
+            throw error;
         }
         const arr = result.stack.map(HttpProviderUtils.parseResponseStack);
         return (arr.length === 1 ? arr[0] : arr);
