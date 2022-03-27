@@ -1,6 +1,7 @@
 
 import { Address, AddressType } from './address';
-import { base64toString, bytesToBase64, bytesToHex, crc16, stringToBytes } from './common';
+import { base64ToBytes, bytesToBase64 } from './base64';
+import { bytesToHex, crc16 } from './common';
 import { WorkchainId } from './workchain';
 
 
@@ -309,6 +310,23 @@ describe('Address', () => {
             );
         });
 
+        it('parses masterchain addresses', () => {
+
+            const addressStr = (
+                '-1:3674ec71a2854a6bc36335c39eb9cc9c0a69d23cdc52c870181b4ae703bcca83'
+            );
+
+            const address = $A(addressStr);
+
+            expect(address.wc).toEqual(-1);
+
+            expect(address.isUserFriendly).toEqual(false);
+            expect(address.isUrlSafe).toEqual(false);
+            expect(address.isBounceable).toEqual(false);
+            expect(address.isTestOnly).toEqual(false);
+
+        });
+
     });
 
     describe('toString()', () => {
@@ -372,9 +390,7 @@ function changeFriendlyAddress(
 ): string {
 
     // Destructuring some address
-    const data = stringToBytes(
-        base64toString(address)
-    );
+    const data = base64ToBytes(address);
 
     handler(data);
 
