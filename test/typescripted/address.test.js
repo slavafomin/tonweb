@@ -22,16 +22,4 @@ const testAddress = '0QAs9VlT6S776tq3unJcP5Ogsj-ELLunLXuOb1EKcOQi4-QO';
 
     }, null, 4));
 
-    const address2 = new utils.Address(
-        '-1:3674ec71a2854a6bc36335c39eb9cc9c0a69d23cdc52c870181b4ae703bcca83'
-    );
-
-    console.log(address2.wc === -1 ? 'OK' : 'FAIL');
-    console.log(address2.isUserFriendly === false ? 'OK' : 'FAIL');
-    console.log(address2.isUrlSafe === false ? 'OK' : 'FAIL');
-    console.log(address2.isBounceable === false ? 'OK' : 'FAIL');
-    console.log(address2.isTestOnly === false ? 'OK' : 'FAIL');
-
-    console.log(address2.toString(false));
-
 })();
