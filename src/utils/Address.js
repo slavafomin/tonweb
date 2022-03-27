@@ -7,11 +7,27 @@ const test_flag = 0x80;
 /**
  * @private
  * @param addressString {string}
- * @return {{isTestOnly: boolean, workchain: number, hashPart: Uint8Array, isBounceable: boolean}}
+ * @return {{
+ *     workchain: number,
+ *     hashPart: Uint8Array,
+ *     isUrlSafe: boolean,
+ *     isBounceable: boolean,
+ *     isTestOnly: boolean,
+ * }}
  */
 function parseFriendlyAddress(addressString) {
     if (addressString.length !== 48) {
         throw new Error(`User-friendly address should contain strictly 48 characters`);
+    }
+    const isUrlSafe = (
+        addressString.includes('-') ||
+        addressString.includes('_')
+    );
+    if (isUrlSafe) {
+        addressString = addressString
+            .replace(/-/g, '+')
+            .replace(/_/g, '\/')
+        ;
     }
     const data = stringToBytes(base64toString(addressString));
     if (data.length !== 36) { // 1byte tag + 1byte workchain + 32 bytes hash + 2 byte crc
@@ -44,7 +60,13 @@ function parseFriendlyAddress(addressString) {
     if (workchain !== 0 && workchain !== -1) throw new Error('Invalid address wc ' + workchain);
 
     const hashPart = addr.slice(2, 34);
-    return {isTestOnly, isBounceable, workchain, hashPart};
+    return {
+        workchain,
+        hashPart,
+        isUrlSafe,
+        isBounceable,
+        isTestOnly,
+    };
 }
 
 class Address {
@@ -78,31 +100,29 @@ class Address {
             return;
         }
 
-        if (anyForm.search(/\-/) > 0 || anyForm.search(/_/) > 0) {
-            this.isUrlSafe = true;
-            anyForm = anyForm.replace(/\-/g, '+').replace(/_/g, '\/');
-        } else {
-            this.isUrlSafe = false;
-        }
         if (anyForm.indexOf(':') > -1) {
+            // Non user-friendly
             const arr = anyForm.split(':');
             if (arr.length !== 2) throw new Error('Invalid address ' + anyForm);
             const wc = parseInt(arr[0]);
             if (wc !== 0 && wc !== -1) throw new Error('Invalid address wc ' + anyForm);
             const hex = arr[1];
             if (hex.length !== 64) throw new Error('Invalid address hex ' + anyForm);
-            this.isUserFriendly = false;
             this.wc = wc;
             this.hashPart = hexToBytes(hex);
+            this.isUserFriendly = false;
+            this.isUrlSafe = false;
             this.isTestOnly = false;
             this.isBounceable = false;
         } else {
-            this.isUserFriendly = true;
+            // User-friendly
             const parseResult = parseFriendlyAddress(anyForm);
             this.wc = parseResult.workchain;
             this.hashPart = parseResult.hashPart;
-            this.isTestOnly = parseResult.isTestOnly;
+            this.isUserFriendly = true;
+            this.isUrlSafe = parseResult.isUrlSafe;
             this.isBounceable = parseResult.isBounceable;
+            this.isTestOnly = parseResult.isTestOnly;
         }
     }
 
