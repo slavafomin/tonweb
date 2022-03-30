@@ -95,7 +95,12 @@ export class WalletContract<
                     const address = await this.getAddress();
                     let seqno: number;
                     try {
-                        seqno = (await provider.call2(address.toString(), 'seqno')).toNumber();
+                        const result = await provider.call2(address.toString(), 'seqno');
+
+                        if (!BN.isBN(result)) {
+                            throw new Error('Received runGetMethod response is incorrect. BN expected.');
+                        }
+                        seqno = result.toNumber();
                     } catch (error) {
                         // Ignoring the error
                         // @todo: it doesn't look like a

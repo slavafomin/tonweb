@@ -84,13 +84,22 @@ export class LockupWalletV1 extends WalletContract<
 
     public async getPublicKey(): Promise<BN> {
         const myAddress = await this.getAddress();
-        return this.provider.call2(myAddress.toString(), 'get_public_key');
+        const result = await this.provider.call2(myAddress.toString(), 'get_public_key');
+
+        if (!BN.isBN(result)) {
+            throw new Error('Received runGetMethod response is incorrect. BN expected.');
+        }
+        return result;
     }
 
 
     public async getWalletId(): Promise<number> {
         const myAddress = await this.getAddress();
         const id = await this.provider.call2(myAddress.toString(), 'get_subwallet_id');
+
+        if (!BN.isBN(id)) {
+            throw new Error('Received runGetMethod response is incorrect. BN expected.');
+        }
         return id.toNumber();
     }
 
@@ -126,7 +135,16 @@ export class LockupWalletV1 extends WalletContract<
      */
     public async getBalances(): Promise<[BN, BN, BN]> {
         const myAddress = await this.getAddress();
-        return this.provider.call2(myAddress.toString(), 'get_balances');
+        const result = this.provider.call2(myAddress.toString(), 'get_balances');
+
+        if (Array.isArray(result)) {
+            const [a, b, c] = result;
+
+            if (BN.isBN(a) && BN.isBN(b) && BN.isBN(c)) {
+                return [a, b, c];
+            }
+        }
+        throw new Error('Received runGetMethod response is incorrect. Array expected.');
     }
 
     /**

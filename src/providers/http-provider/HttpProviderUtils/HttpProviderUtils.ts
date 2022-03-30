@@ -4,6 +4,22 @@ import BN from 'bn.js';
 import { Cell } from '../boc/cell';
 import { base64ToBytes } from '../utils/base64';
 
+import {
+    RunGetMethodResult,
+    RunGetMethodResultStackItem,
+
+} from '../HttpProvider';
+
+import {
+    ParseObjectParam,
+    ParseObjectResult,
+    ParseResponseParam,
+    ParseResponseResult,
+    ParseResponseStackParam,
+    ParseResponseStackResult,
+
+} from './types';
+
 
 /**
  * @todo: extract all the static methods as individual functions
@@ -14,7 +30,7 @@ export class HttpProviderUtils {
     /**
      * @todo: improve typing
      */
-    public static parseObject(obj: any): (BN | any) {
+    public static parseObject(obj: ParseObjectParam): ParseObjectResult {
         const typeName = obj['@type'];
         switch (typeName) {
             case 'tvm.list':
@@ -35,44 +51,33 @@ export class HttpProviderUtils {
      * @todo: improve typing
      */
     public static parseResponseStack(
-        pair: [string, any]
-
-    ): (BN | Cell | any) {
-
-        const typeName = pair[0];
-        const value = pair[1];
-
-        switch (typeName) {
-            case 'num':
-                return new BN(value.replace(/0x/, ''), 16);
-            case 'list':
-            case 'tuple':
-                return HttpProviderUtils.parseObject(value);
-            case 'cell':
-                const contentBytes = base64ToBytes(value.bytes);
-                return Cell.oneFromBoc(contentBytes);
-            default:
-                throw new Error(
-                    `Failed to parse response stack, ` +
-                    `unknown type: ${typeName}`
-                );
+        pair: ParseResponseStackParam
+    ): ParseResponseStackResult {
+        if (pair[0] === 'num') {
+            return new BN(pair[1].replace(/0x/, ''), 16);
         }
-
+        if (pair[0] === 'list' || pair[0] === 'tuple') {
+            return HttpProviderUtils.parseObject(pair[1]);
+        }
+        if (pair[0] === 'cell') {
+            const contentBytes = base64ToBytes(pair[1].bytes);
+            return Cell.oneFromBoc(contentBytes);
+        }
+        throw new Error(
+            `Failed to parse response stack, unknown type: ${pair[0]}`
+        );
     }
 
-    /**
-     * @todo: improve typing
-     */
-    public static parseResponse(result) {
+    public static parseResponse(
+        result: ParseResponseParam
+    ): ParseResponseResult {
         if (result.exit_code !== 0) {
             // @todo: use custom error class
             const error = new Error('Failed to parse response');
             (error as any).result = result;
             throw error;
         }
-        const arr = (result.stack
-            .map(HttpProviderUtils.parseResponseStack)
-        );
+        const arr = result.stack.map(HttpProviderUtils.parseResponseStack);
         return (arr.length === 1 ? arr[0] : arr);
     }
 

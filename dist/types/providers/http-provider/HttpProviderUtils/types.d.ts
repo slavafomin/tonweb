@@ -1,0 +1,10 @@
+import { Tvm } from '../HttpProvider/types/tl-spec';
+import BN from 'bn.js';
+import { RunGetMethodResult, RunGetMethodResultStackItem } from '../HttpProvider';
+import { Cell } from '../../../boc/cell';
+export declare type ParseObjectParam = Tvm.List | Tvm.Tuple | Tvm.NumberDecimal | Tvm.StackEntry;
+export declare type ParseObjectResult = BN | ParseObjectResult[];
+export declare type ParseResponseStackParam = RunGetMethodResultStackItem;
+export declare type ParseResponseStackResult = BN | ParseObjectResult | Cell;
+export declare type ParseResponseParam = RunGetMethodResult;
+export declare type ParseResponseResult = ParseResponseStackResult | ParseResponseStackResult[];

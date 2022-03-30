@@ -40,9 +40,12 @@ export type BN = $BN;
 //===============//
 
 import {
+    GetAddressBalanceResult,
+    GetTransactionsResult,
     HttpProvider as $HttpProvider,
-    StackElement,
-
+    RunGetMethodParamsStackItem,
+    RunGetMethodResult,
+    SendBocResult,
 } from './providers/http-provider';
 
 export type HttpProvider = $HttpProvider;
@@ -50,12 +53,8 @@ export type HttpProvider = $HttpProvider;
 export {
     // HttpProvider,
     // defaultHost,
-    CellObject,
-    EstimateFeeBody,
+    RunGetMethodResultStackItem,
     HttpProviderOptions,
-    SliceObject,
-    StackElement,
-
 } from './providers/http-provider';
 
 
@@ -648,15 +647,13 @@ export default class TonWeb {
      * Use this method to get transaction history of a given address.
      * Returns array of transaction objects.
      */
-    public async getTransactions(
+    public getTransactions(
       address: AddressType,
       limit = 20,
       lt?: number,
       txhash?: string,
       to_lt?: number
-
-    ): Promise<any> {
-
+    ): Promise<GetTransactionsResult> {
         return this.provider.getTransactions(
           address.toString(),
           limit,
@@ -664,13 +661,12 @@ export default class TonWeb {
           txhash,
           to_lt
         );
-
     };
 
     /**
      * Returns current balance for the given address in nanograms.
      */
-    public async getBalance(address: AddressType): Promise<string> {
+    public getBalance(address: AddressType): Promise<GetAddressBalanceResult> {
         return this.provider.getBalance(address.toString());
     }
 
@@ -678,16 +674,14 @@ export default class TonWeb {
      * Use this method to send serialized boc file:
      * fully packed and serialized external message.
      */
-    public async sendBoc(bytes: Uint8Array) {
-        return this.provider.sendBoc(
-            utils.bytesToBase64(bytes)
-        );
+    public sendBoc(bytes: Uint8Array): Promise<SendBocResult> {
+        return this.provider.sendBoc(utils.bytesToBase64(bytes));
     }
 
     /**
      * Invoke get-method of smart contract.
      */
-    public async call(
+    public call(
       /**
        * Contract address.
        */
@@ -701,18 +695,10 @@ export default class TonWeb {
       /**
        * Array of stack elements.
        */
-      params: StackElement[] = []
+      stack: RunGetMethodParamsStackItem[] = []
 
-    ): Promise<any> {
-
-        // @todo: type return value
-
-        return this.provider.call(
-          address.toString(),
-          method,
-          params
-        );
-
+    ): Promise<RunGetMethodResult> {
+        return this.provider.call(address.toString(), method, stack);
     }
 
 }

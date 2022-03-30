@@ -1,54 +1,29 @@
 
-import { HttpProviderUtils } from './http-provider-utils';
-
+import { HttpProviderUtils, ParseResponseResult } from '../HttpProviderUtils';
+import {
+    EstimateFeeParams, EstimateFeeResult,
+    GetAddressBalanceResult,
+    GetAddressInformationResult,
+    GetBlockHeaderResult,
+    GetBlockTransactionsResult,
+    GetExtendedAddressInformationResult,
+    GetMasterchainInfoResult,
+    GetTransactionsResult,
+    GetWalletInformationResult,
+    HttpProviderMethodNoArgsName,
+    HttpProviderMethodParams,
+    HttpProviderMethodResponse,
+    HttpProviderMethodWithArgsName,
+    RunGetMethodParamsStackItem,
+    RunGetMethodResult,
+    SendBocResult,
+    SendQuerySimpleParams, SendQuerySimpleResult,
+    ShardsResult
+} from './types';
 
 export interface HttpProviderOptions {
     apiKey?: string;
 }
-
-export interface EstimateFeeBody {
-
-    /**
-     * Address in any format.
-     */
-    address: string;
-
-    /**
-     * base64-encoded cell with message body.
-     */
-    body: string;
-
-    /**
-     * base64-encoded cell with init-code.
-     */
-    init_code?: string;
-
-    /**
-     * base64-encoded cell with init-data.
-     */
-    init_data?: string;
-
-    /**
-     * If true during test query processing assume
-     * that all chksig operations return True.
-     *
-     * default: `true`
-     */
-    ignore_chksig?: boolean;
-
-}
-
-export type StackElement = (
-  | ['num', number]
-  | ['cell', CellObject]
-  | ['slice', SliceObject]
-
-  // @todo: remove this when entire type is fully typed
-  | [string, any]
-);
-
-export type CellObject = any;
-export type SliceObject = any;
 
 
 // @todo: set `fetch` to "node-fetch" in Node.js via Webpack
@@ -69,15 +44,63 @@ export class HttpProvider {
     ) {
     }
 
-
     /**
-     * @todo: change params type to Array<any>
+     * Calls known API method with parameters and returns typed response.
+     * @param method
+     * @param params
      */
-    public send(method: string, params: any): Promise<Response> {
-        return this.sendImpl(
-            this.host,
-            { id: 1, jsonrpc: '2.0', method, params }
-        );
+    public send<M extends HttpProviderMethodWithArgsName>(
+        method: M,
+        params: HttpProviderMethodParams<M>
+    ): Promise<HttpProviderMethodResponse<M>>
+    /**
+     * Calls known API method without parameters and returns typed response.
+     * @param method
+     */
+    public send<M extends HttpProviderMethodNoArgsName>(
+        method: M
+    ): Promise<HttpProviderMethodResponse<M>>;
+    public async send(method: string, params: any = {}): Promise<any> {
+        // Expect JSON response.
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+
+        // Append API key in case it was specified.
+        if (this.options.apiKey) {
+            headers['X-API-Key'] = this.options.apiKey;
+        }
+
+        // Send request.
+        const response = await fetch(this.host, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ id: 1, jsonrpc: '2.0', method, params }),
+        });
+        const responseData = await response.json();
+
+        // We expect plain object response. So, other responses are considered
+        // inconsistent.
+        if (
+            typeof responseData !== 'object' ||
+            Array.isArray(responseData) ||
+            responseData === null
+        ) {
+            throw new Error('API returned inconsistent response.');
+        }
+
+        if ('error' in responseData) {
+            // TODO:
+            //  1. Throw custom error.
+            //  2. Unless responseData is not typed, we are processing it in
+            //   a safe way.
+            throw new Error(
+                typeof responseData.error === 'string'
+                    ? responseData.error
+                    : ('API returned error: ' + JSON.stringify(responseData.error))
+            );
+        }
+        return responseData.result;
     }
 
     /**
@@ -86,7 +109,7 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_address_information_getAddressInformation_get}
      */
-    public async getAddressInfo(address: string): Promise<any> {
+    public getAddressInfo(address: string): Promise<GetAddressInformationResult> {
         return this.send('getAddressInformation', { address });
     }
 
@@ -99,7 +122,9 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_extended_address_information_getExtendedAddressInformation_get}
      */
-    public async getExtendedAddressInfo(address: string): Promise<any> {
+    public getExtendedAddressInfo(
+        address: string
+    ): Promise<GetExtendedAddressInformationResult> {
         return this.send('getExtendedAddressInformation', { address });
     }
 
@@ -113,7 +138,7 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_wallet_information_getWalletInformation_get}
      */
-    public async getWalletInfo(address: string): Promise<any> {
+    public getWalletInfo(address: string): Promise<GetWalletInformationResult> {
         return this.send('getWalletInformation', { address });
     }
 
@@ -124,16 +149,14 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_transactions_getTransactions_get}
      */
-    public async getTransactions(
+    public getTransactions(
       address: string,
       limit = 20,
       lt?: number,
       hash?: string,
       to_lt?: number,
-      archival?: any
-
-    ): Promise<any> {
-
+      archival?: boolean
+    ): Promise<GetTransactionsResult> {
         return this.send('getTransactions', {
             address,
             limit,
@@ -142,7 +165,6 @@ export class HttpProvider {
             to_lt,
             archival,
         });
-
     };
 
     /**
@@ -151,7 +173,7 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/accounts/get_address_balance_getAddressBalance_get}
      */
-    public async getBalance(address: string): Promise<any> {
+    public getBalance(address: string): Promise<GetAddressBalanceResult> {
         return this.send('getAddressBalance', { address });
     }
 
@@ -161,16 +183,13 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/send/send_boc_sendBoc_post}
      */
-    public async sendBoc(
+    public sendBoc(
       /**
        * base64 string of boc bytes `Cell.toBoc`
        */
       base64: string
-
-    ): Promise<any> {
-
-        return this.send('sendBoc', { boc: base64 });
-
+    ): Promise<SendBocResult> {
+        return this.send('sendBoc', {boc: base64});
     };
 
     /**
@@ -178,7 +197,7 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/send/estimate_fee_estimateFee_post}
      */
-    public async getEstimateFee(query: EstimateFeeBody): Promise<any> {
+    public getEstimateFee(query: EstimateFeeParams): Promise<EstimateFeeResult> {
         return this.send('estimateFee', query);
     };
 
@@ -189,35 +208,26 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/run%20method/run_get_method_runGetMethod_post}
      */
-    public async call(
+    public call(
       /**
        * Contract address.
        */
       address: string,
-
       /**
        * Method name or method ID.
        */
       method: (string | number),
-
       /**
        * Array of stack elements.
        */
-      params: StackElement[] = []
-
-    ): Promise<any> {
-
+      stack: RunGetMethodParamsStackItem[] = []
+    ): Promise<RunGetMethodResult> {
         /**
          * @todo: think about throw error
          *        if result.exit_code !== 0
          *        (the change breaks backward compatibility)
          */
-        return this.send('runGetMethod', {
-            address: address,
-            method: method,
-            stack: params,
-        });
-
+        return this.send('runGetMethod', {address, method, stack});
     }
 
     /**
@@ -239,11 +249,8 @@ export class HttpProvider {
       /**
        * Array of stack elements.
        */
-      params: StackElement[] = []
-
-      // @todo: properly type the result
-    ): Promise<any> {
-
+      params: RunGetMethodParamsStackItem[] = []
+    ): Promise<ParseResponseResult> {
         const result = await this.send('runGetMethod', {
             address,
             method,
@@ -251,7 +258,6 @@ export class HttpProvider {
         });
 
         return HttpProviderUtils.parseResponse(result);
-
     }
 
     /**
@@ -259,8 +265,8 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/blocks/get_masterchain_info_getMasterchainInfo_get}
      */
-    public async getMasterchainInfo(): Promise<any> {
-        return this.send('getMasterchainInfo', {});
+    public getMasterchainInfo(): Promise<GetMasterchainInfoResult> {
+        return this.send('getMasterchainInfo');
     }
 
     /**
@@ -269,10 +275,8 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/blocks/shards_shards_get}
      */
-    public async getBlockShards(masterchainBlockNumber: number): Promise<any> {
-        return this.send('shards', {
-            seqno: masterchainBlockNumber,
-        });
+    public getBlockShards(masterchainBlockNumber: number): Promise<ShardsResult> {
+        return this.send('shards', {seqno: masterchainBlockNumber});
     }
 
     /**
@@ -280,26 +284,25 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/blocks/get_block_transactions_getBlockTransactions_get}
      */
-    public async getBlockTransactions(
+    public getBlockTransactions(
       workchain: number,
       shardId: string,
       shardBlockNumber: number
-
-    ): Promise<any> {
-
+    ): Promise<GetBlockTransactionsResult> {
         return this.send('getBlockTransactions', {
             workchain,
             shard: shardId,
             seqno: shardBlockNumber,
         });
-
     }
 
     /**
      * Returns transactions hashes included
      * in this masterchain block.
      */
-    public async getMasterchainBlockTransactions(masterchainBlockNumber: number): Promise<any> {
+    public getMasterchainBlockTransactions(
+        masterchainBlockNumber: number
+    ): Promise<GetBlockTransactionsResult> {
         return this.getBlockTransactions(-1, SHARD_ID_ALL, masterchainBlockNumber);
     }
 
@@ -308,25 +311,24 @@ export class HttpProvider {
      *
      * {@link https://toncenter.com/api/v2/#/blocks/get_block_header_getBlockHeader_get}
      */
-    public async getBlockHeader(
+    public getBlockHeader(
       workchain: number,
       shardId: string,
       shardBlockNumber: number
-
-    ): Promise<any> {
-
+    ): Promise<GetBlockHeaderResult> {
         return this.send('getBlockHeader', {
             workchain,
             shard: shardId,
             seqno: shardBlockNumber,
         });
-
     }
 
     /**
      * Returns masterchain block header and his previous block ID.
      */
-    public async getMasterchainBlockHeader(masterchainBlockNumber: number): Promise<any> {
+    public getMasterchainBlockHeader(
+        masterchainBlockNumber: number
+    ): Promise<GetBlockHeaderResult> {
         return this.getBlockHeader(-1, SHARD_ID_ALL, masterchainBlockNumber);
     }
 
@@ -337,30 +339,8 @@ export class HttpProvider {
      *
      * @deprecated
      */
-    public async sendQuery(query: any): Promise<any> {
+    public sendQuery(query: SendQuerySimpleParams): Promise<SendQuerySimpleResult> {
         return this.send('sendQuerySimple', query);
     };
-
-
-    /**
-     * @private
-     */
-    private sendImpl(apiUrl: string, request: any): Promise<any> {
-        const headers = {
-            'Content-Type': 'application/json',
-        };
-        if (this.options.apiKey) {
-            headers['X-API-Key'] = this.options.apiKey;
-        }
-        // @todo: use async/await/throw
-        return fetch(apiUrl, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(request),
-        })
-            .then(response => response.json())
-            .then(({ result, error }) => (result || Promise.reject(error)))
-        ;
-    }
 
 }
