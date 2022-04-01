@@ -576,7 +576,7 @@ declare interface EstimateFeeParams {
     ignore_chksig?: boolean;
 }
 
-declare type EstimateFeeResult = TonLib.Combinators.Query.Fees;
+declare type EstimateFeeResult = TonLib.Types.Query.Fees;
 
 export declare interface ExternalMessage {
     address: Address_2;
