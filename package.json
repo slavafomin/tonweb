@@ -1,12 +1,13 @@
 {
-  "name": "tonweb",
-  "version": "0.0.37",
+  "name": "@ton.js/tonweb",
+  "version": "0.0.37-beta.2",
   "description": "TonWeb - JavaScript API for TON blockchain",
   "main": "src/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx webpack --mode=none"
+    "build": "npx webpack --mode=none",
+    "prepack": "npm ci && npm run build"
   },
   "keywords": [
     "TON",
@@ -27,10 +28,22 @@
   },
   "homepage": "https://github.com/toncenter/tonweb#readme",
   "repository": "https://github.com/toncenter/tonweb",
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "@ledgerhq/hw-transport-web-ble": "5.48.0",
     "@ledgerhq/hw-transport-webhid": "5.48.0",
     "@ledgerhq/hw-transport-webusb": "5.48.0",
+    "@ton.js/types": "0.0.5",
+    "@types/bn.js": "~5.1.0",
     "bn.js": "5.1.1",
     "ethjs-unit": "0.1.6",
     "isomorphic-webcrypto": "2.3.8",
