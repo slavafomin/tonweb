@@ -1,8 +1,6 @@
 
 // NOTE: "mc" means masterchain, while "shards" means "shardchains"
 
-import Timeout = NodeJS.Timeout;
-
 import { HttpProvider } from '../http-provider/http-provider';
 import { BlockStorage, ShardBlock } from './block-storage';
 
@@ -58,8 +56,8 @@ export class BlockSubscription {
     );
 
     private startLT?: any;
-    private mcIntervalId?: Timeout;
-    private shardsIntervalId?: Timeout;
+    private mcIntervalId?: ReturnType<typeof setInterval>;
+    private shardsIntervalId?: ReturnType<typeof setInterval>;
 
 
     constructor(
