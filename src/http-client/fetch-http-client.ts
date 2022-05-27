@@ -1,4 +1,6 @@
 
+import Timeout = NodeJS.Timeout;
+
 import { version } from '../version';
 import { fetch, Headers } from './fetch-api';
 import { createHeaders, parseResponseBody } from './http-utils';
@@ -77,7 +79,7 @@ export class FetchHttpClient implements HttpClient {
         };
 
         let abortController: AbortController;
-        let timeoutInterval: (number | undefined);
+        let timeoutInterval: (Timeout | undefined);
         if (this.options.timeout !== false) {
             abortController = new AbortController();
             requestOptions.signal = abortController.signal;
