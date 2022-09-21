@@ -224,7 +224,7 @@ export class HttpProvider {
     /**
      * Invokes get-method of smart contract.
      *
-     * @todo: rename to `runGetMethodRaw()`
+     * @todo rename to `runGetMethodRaw()`
      *
      * {@link https://toncenter.com/api/v2/#/run%20method/run_get_method_runGetMethod_post}
      *
@@ -240,7 +240,7 @@ export class HttpProvider {
     ): Promise<RunGetMethodResult> {
 
         /**
-         * @todo: think about throw error
+         * @todo think about throw error
          *        if result.exit_code !== 0
          *        (the change breaks backward compatibility)
          */
@@ -255,7 +255,7 @@ export class HttpProvider {
     /**
      * Invokes get-method of smart contract.
      *
-     * @todo: rename to `runGetMethod()`
+     * @todo rename to `runGetMethod()`
      *
      * {@link https://toncenter.com/api/v2/#/run%20method/run_get_method_runGetMethod_post}
      *
@@ -263,12 +263,15 @@ export class HttpProvider {
      * @param method - Method name or method ID
      * @param params - Array of stack elements
      */
-    public async call2(
+    public async call2<
+        ParamsType = RunGetMethodParamsStackItem[],
+        ResultType = ParseResponseResult
+    >(
         address: string,
         method: (string | number),
         params: RunGetMethodParamsStackItem[] = []
 
-    ): Promise<ParseResponseResult> {
+    ): Promise<ResultType> {
 
         const result = await this.send('runGetMethod', {
             address,
@@ -276,7 +279,9 @@ export class HttpProvider {
             stack: params,
         });
 
-        return HttpProviderUtils.parseResponse(result);
+        return HttpProviderUtils.parseResponse<ResultType>(
+            result
+        );
 
     }
 
@@ -404,14 +409,14 @@ export class HttpProvider {
             headers['X-API-Key'] = this.options.apiKey;
         }
 
-        const response = await this.httpClient
+        const response = (await this.httpClient
             .sendRequest({
                 url: apiUrl,
                 method: 'POST',
                 body: request,
                 headers,
             })
-        ;
+        );
 
         return this.processApiResponseOrThrow(
             response.payload

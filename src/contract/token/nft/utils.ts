@@ -1,8 +1,17 @@
 
-import { BitString } from '../../../boc/bit-string';
-import { Cell } from '../../../boc/cell';
-import { textEncoder } from '../../../utils/text-encoding';
+import { Cell } from '../../../boc/cell/cell';
+import { HttpProvider } from '../../../http-provider/http-provider';
+import { parseAddressFromCell } from '../../../utils/parsing';
+import { bytesToString, stringToBytes } from '../../../utils/text-encoding';
 import { Address } from '../../../utils/address';
+
+
+export interface RoyaltyParams {
+    royalty: number;
+    royaltyFactor: number;
+    royaltyBase: number;
+    royaltyAddress: Address;
+}
 
 
 export const SNAKE_DATA_PREFIX = 0x00;
@@ -12,11 +21,11 @@ export const OFFCHAIN_CONTENT_PREFIX = 0x01;
 
 
 export function serializeUri(uri: string): Uint8Array {
-    return textEncoder.encode(encodeURI(uri));
+    return stringToBytes(encodeURI(uri));
 }
 
 export function parseUri(bytes: Uint8Array): string {
-    return new TextDecoder().decode(bytes);
+    return bytesToString(bytes);
 }
 
 export function createOffchainUriCell(uri: string): Cell {
@@ -27,50 +36,34 @@ export function createOffchainUriCell(uri: string): Cell {
 }
 
 export function parseOffchainUriCell(cell: Cell): string {
-    let length = 0;
-    let c = cell;
-    while (c) {
-        length += c.bits.array.length;
-        c = c.refs[0];
-    }
 
-    const bytes = new Uint8Array(length);
-    length = 0;
-    c = cell;
-    while (c) {
-        bytes.set(c.bits.array, length)
-        length += c.bits.array.length;
-        c = c.refs[0];
-    }
-    return parseUri(bytes.slice(1)); // slice OFFCHAIN_CONTENT_PREFIX
+    // Skipping the OFFCHAIN_CONTENT_PREFIX byte
+    return (cell.parse()
+        .skipBits(8)
+        .loadSnakeDataString()
+    );
+
 }
 
-export function parseAddress(cell: Cell): (Address | undefined) {
-    let n = readIntFromBitString(cell.bits, 3, 8);
-    if (n > BigInt(127)) {
-        n -= BigInt(256);
-    }
-    const hashPart = readIntFromBitString(cell.bits, 3 + 8, 256);
-    if (n.toString(10) + ":" + hashPart.toString(16) === '0:0') {
-        return undefined;
-    }
-    const address = n.toString(10) + ":" + hashPart.toString(16).padStart(64, '0');
-    return new Address(address);
-}
+export async function getRoyaltyParams(
+    provider: HttpProvider,
+    address: string
 
+): Promise<RoyaltyParams> {
 
-function readIntFromBitString(
-    bitString: BitString,
-    cursor: number,
-    bits: number
+    const result = await provider.call2(
+        address,
+        'royalty_params'
+    );
 
-): bigint {
+    const royaltyFactor = result[0].toNumber();
+    const royaltyBase = result[1].toNumber();
 
-    let n = BigInt(0);
-    for (let i = 0; i < bits; i++) {
-        n *= BigInt(2);
-        n += BigInt(bitString.get(cursor + i));
-    }
-    return n;
+    return {
+        royalty: (royaltyFactor / royaltyBase),
+        royaltyBase,
+        royaltyFactor,
+        royaltyAddress: parseAddressFromCell(result[2]),
+    };
 
 }

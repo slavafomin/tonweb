@@ -3,7 +3,7 @@ import BN from 'bn.js';
 
 import { TonLib } from '@ton.js/types';
 
-import { Cell } from '../boc/cell';
+import { Cell } from '../boc/cell/cell';
 import { base64ToBytes } from '../utils/base64';
 import { expectBoolean, expectNonNullObject, expectNumber, expectString } from '../utils/type-guards';
 import { ApiResponse } from './http-provider';
@@ -12,14 +12,17 @@ import { RunGetMethodResult, RunGetMethodResultStackItem } from './types/respons
 
 /* parseObject */
 export type ParseObjectParam = (
+    | TonLib.Combinators.Tvm.Cell
     | TonLib.Combinators.Tvm.List
-    | TonLib.Combinators.Tvm.Tuple
     | TonLib.Combinators.Tvm.NumberDecimal
+    | TonLib.Combinators.Tvm.StackEntryCell
+    | TonLib.Combinators.Tvm.Tuple
     | TonLib.Types.Tvm.StackEntry
 );
 
 export type ParseObjectResult = (
     | BN
+    | Cell
     | ParseObjectResult[]
 );
 
@@ -42,7 +45,7 @@ export type ParseResponseResult = (
 
 
 /**
- * @todo: extract all the static methods as individual functions
+ * @todo extract all the static methods as individual functions
  *        there is no need to use class for this
  */
 export class HttpProviderUtils {
@@ -54,9 +57,8 @@ export class HttpProviderUtils {
 
         const typeName = obj['@type'];
 
-        // @todo: handle additional types:
+        // @todo handle additional types:
         //        - tvm.stackEntrySlice
-        //        - tvm.stackEntryCell
         //        - tvm.stackEntryList
         //        - tvm.stackEntryUnsupported
 
@@ -64,12 +66,22 @@ export class HttpProviderUtils {
             case 'tvm.list':
             case 'tvm.tuple':
                 return obj.elements.map(HttpProviderUtils.parseObject);
+
+            case 'tvm.cell':
+                return Cell.oneFromBoc(base64ToBytes(obj.bytes));
+
+            case 'tvm.stackEntryCell':
+                return HttpProviderUtils.parseObject(obj.cell);
+
             case 'tvm.stackEntryTuple':
                 return HttpProviderUtils.parseObject(obj.tuple);
+
             case 'tvm.stackEntryNumber':
                 return HttpProviderUtils.parseObject(obj.number);
+
             case 'tvm.numberDecimal':
                 return new BN(obj.number, 10);
+
             default:
                 throw new Error(`Unknown type: ${typeName}`);
         }
@@ -108,23 +120,27 @@ export class HttpProviderUtils {
 
     }
 
-    public static parseResponse(
+    public static parseResponse<
+        ResultType = ParseResponseResult
+    >(
         result: ParseResponseParam
 
-    ): ParseResponseResult {
+    ): ResultType {
 
         if (result.exit_code !== 0) {
-            // @todo: use custom error class
+            // @todo use custom error class
             const error = new Error('Failed to parse response');
             (error as any).result = result;
             throw error;
         }
 
-        const arr = (result.stack
+        const stackItems = (result.stack
             .map(HttpProviderUtils.parseResponseStack)
         );
 
-        return (arr.length === 1 ? arr[0] : arr);
+        return <ResultType> <any> (
+            (stackItems.length === 1 ? stackItems[0] : stackItems)
+        );
 
     }
 

@@ -1,8 +1,17 @@
 
-import { Address, AddressType } from './address';
-import { base64ToBytes, bytesToBase64 } from './base64';
-import { bytesToHex, crc16 } from './common';
+import TonWeb from '__tonweb__';
+import { AddressType } from '__tonweb__';
+
 import { WorkchainId } from './workchain';
+
+const {
+    Address,
+    base64ToBytes,
+    bytesToBase64,
+    bytesToHex,
+    crc16,
+
+} = TonWeb.utils;
 
 
 /**
@@ -360,7 +369,7 @@ describe('Address', () => {
 
         }
 
-        // @todo: add tests that modifies address flags directly
+        // @todo add tests that modifies address flags directly
 
     });
 

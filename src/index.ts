@@ -25,16 +25,13 @@
 
 export * from '@ton.js/types';
 
-import $BN from 'bn.js';
 import nacl from 'tweetnacl';
 import BluetoothTransport from '@ledgerhq/hw-transport-web-ble';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 
-
-// Exporting BN as type-only, we have had
-// to rename the original import for this to work
-export type BN = $BN;
+import BN from 'bn.js';
+export type { BN };
 
 
 //=============//
@@ -82,6 +79,42 @@ export {
     HttpProviderOptions,
 
 } from './http-provider/http-provider';
+
+export {
+    GetAddressInformationResult,
+    GetExtendedAddressInformationResult,
+    GetWalletInformationResult,
+    GetTransactionsResult,
+    GetTransactionsResultTransaction,
+    GetTransactionsResultTransactionMessage,
+    GetAddressBalanceResult,
+    SendBocResult,
+    EstimateFeeParams,
+    EstimateFeeResult,
+    RunGetMethodParamsStackItem,
+    RunGetMethodResult,
+    RunGetMethodResultStackItem,
+    GetMasterchainInfoResult,
+    ShardsResult,
+    GetBlockTransactionsResult,
+    GetBlockHeaderResult,
+    SendQuerySimpleParams,
+    SendQuerySimpleResult,
+
+} from './http-provider/types/responses/meta';
+
+export {
+    AddressState,
+    WalletType,
+
+} from './http-provider/types/responses/misc';
+
+export {
+    ParseResponseResult,
+    ParseResponseStackResult,
+    ParseObjectResult,
+
+} from './http-provider/http-provider-utils';
 
 
 //====================//
@@ -140,8 +173,6 @@ export {
 
 } from './utils/address';
 
-import * as commonUtilsExports from './utils/common';
-
 import {
     base64ToBytes,
     bytesToBase64,
@@ -151,6 +182,19 @@ import {
 } from './utils/base64';
 
 import {
+    keyPairFromSeed,
+    newKeyPair,
+    newSeed,
+
+} from './utils/crypto';
+
+import {
+    bytesToHex,
+    hexToBytes,
+
+} from './utils/hex';
+
+import {
     formatTransferUrl,
     parseTransferUrl,
 
@@ -158,17 +202,43 @@ import {
 
 export { ParsedTransferUrl } from './utils/transfer-url';
 
+import {
+    compareBytes,
+    concatBytes,
+    crc16,
+    crc32c,
+    fromNano,
+    readNBytesUIntFromArray,
+    sha256,
+    stringToBytes,
+    toNano,
+
+} from './utils/common';
+
 const utils = {
-    ...commonUtilsExports,
-    base64ToBytes,
-    bytesToBase64,
-    base64toString,
-    stringToBase64,
-    BN: $BN,
-    nacl,
     Address: $Address,
+    BN,
+    base64ToBytes,
+    base64toString,
+    bytesToBase64,
+    bytesToHex,
+    compareBytes,
+    concatBytes,
+    crc16,
+    crc32c,
     formatTransferUrl,
+    fromNano,
+    hexToBytes,
+    nacl,
     parseTransferUrl,
+    readNBytesUIntFromArray,
+    sha256,
+    stringToBase64,
+    stringToBytes,
+    toNano,
+    keyPairFromSeed,
+    newKeyPair,
+    newSeed,
 };
 
 
@@ -176,10 +246,14 @@ const utils = {
 // BOC //
 //=====//
 
-import { BitString as $BitString } from './boc/bit-string';
+import { BitString as $BitString } from './boc/bit-string/bit-string';
 export type BitString = $BitString;
 
-import { Cell as $Cell } from './boc/cell';
+import { Cell as $Cell } from './boc/cell/cell';
+
+// @todo export cell-related types
+export {  } from './boc/cell/cell';
+
 export type Cell = $Cell;
 
 const boc = {
@@ -486,129 +560,64 @@ export {
 } from './ledger/app-ton';
 
 
+//================//
+// JETTON: WALLET //
+//================//
+
+import { JettonWallet } from './contract/token/ft/jetton-wallet';
+export type { JettonWallet } from './contract/token/ft/jetton-wallet';
+
+
+//================//
+// JETTON: MINTER //
+//================//
+
+import { JettonMinter } from './contract/token/ft/jetton-minter';
+export type { JettonMinter } from './contract/token/ft/jetton-minter';
+
+
 //========//
 // JETTON //
 //========//
 
-import {
-    JettonWallet as $JettonWallet,
-
-} from './contract/token/ft/jetton-wallet';
-
-export type JettonWallet = $JettonWallet;
-
-import {
-    JettonMinter as $JettonMinter,
-
-} from './contract/token/ft/jetton-minter';
-
-export type JettonMinter = $JettonMinter;
-
 const JETTON = {
-    JettonWallet: $JettonWallet,
-    JettonMinter: $JettonMinter,
+    JettonWallet,
+    JettonMinter,
 };
-
-export {
-    // JettonWallet,
-    JettonWalletMethods,
-    JettonWalletOptions,
-
-} from './contract/token/ft/jetton-wallet';
-
-export {
-    // JettonMinter,
-    JettonMinterMethods,
-    JettonMinterOptions,
-
-} from './contract/token/ft/jetton-minter';
 
 
 //=================//
 // NFT: COLLECTION //
 //=================//
 
-import {
-    NftCollection as $NftCollection,
+import { NftCollection } from './contract/token/nft/nft-collection';
+export type { NftCollection } from './contract/token/nft/nft-collection';
 
-} from './contract/token/nft/nft-collection';
-
-export type NftCollection = $NftCollection;
-
-export {
-    // NftCollection,
-    CreateChangeOwnerBodyParams,
-    CreateGetRoyaltyParamsBodyParams,
-    MintBodyParams,
-    NftCollectionMethods,
-    NftCollectionOptions,
-    NftItemContent,
-    RoyaltyParams,
-    CollectionData,
-
-} from './contract/token/nft/nft-collection';
+export { RoyaltyParams } from './contract/token/nft/utils';
 
 
 //===========//
 // NFT: ITEM //
 //===========//
 
-import {
-    NftItem as $NftItem,
-
-} from './contract/token/nft/nft-item';
-
-export type NftItem = $NftItem;
-
-export {
-    // NftItem,
-    CreateGetStaticDataBodyParams,
-    CreateTransferBodyParams,
-    NftItemMethods,
-    NftItemOptions,
-    NftItemData,
-
-} from './contract/token/nft/nft-item';
+import { NftItem } from './contract/token/nft/nft-item';
+export type { NftItem } from './contract/token/nft/nft-item';
 
 
 //==================//
 // NFT: MARKETPLACE //
 //==================//
 
-import {
-    NftMarketplace as $NftMarketplace,
-
-} from './contract/token/nft/nft-marketplace';
-
-export type NftMarketplace = $NftMarketplace;
-
-export {
-    // NftMarketplace,
-    NftMarketplaceMethods,
-    NftMarketplaceOptions,
-
-} from './contract/token/nft/nft-marketplace';
+import { NftMarketplace } from './contract/token/nft/nft-marketplace';
+export type { NftMarketplace } from './contract/token/nft/nft-marketplace';
 
 
 //===========//
 // NFT: SALE //
 //===========//
 
-import {
-    NftSale as $NftSale,
-
-} from './contract/token/nft/nft-sale';
-
-export type NftSale = $NftSale;
-
-export {
-    // NftSale,
-    CreateCancelBodyParams,
-    NftSaleMethods,
-    NftSaleOptions,
-    NftSaleData,
-
-} from './contract/token/nft/nft-sale';
+import { NftSale } from './contract/token/nft/nft-sale';
+export type { NftSale } from './contract/token/nft/nft-sale';
 
 
 //=====//
@@ -616,11 +625,40 @@ export {
 //=====//
 
 const NFT = {
-    NftCollection: $NftCollection,
-    NftItem: $NftItem,
-    NftMarketplace: $NftMarketplace,
-    NftSale: $NftSale,
+    NftCollection,
+    NftItem,
+    NftMarketplace,
+    NftSale,
 };
+
+
+//=====//
+// DNS //
+//=====//
+
+import { Dns } from './contract/dns/dns';
+import { DnsCollection } from './contract/dns/dns-collection';
+import { DnsItem } from './contract/dns/dns-item';
+
+export type {
+    Dns,
+    DnsCollection,
+    DnsItem,
+};
+
+
+//==========//
+// PAYMENTS //
+//==========//
+
+import { Payments } from './contract/payments/payments';
+import { PaymentChannel } from './contract/payments/payment-channel';
+
+export type {
+    Payments,
+    PaymentChannel,
+};
+
 
 // -----
 
@@ -640,6 +678,8 @@ export default class TonWeb {
     public static BlockSubscription = $BlockSubscription;
     public static InMemoryBlockStorage = $InMemoryBlockStorage;
     public static FetchHttpClient = $FetchHttpClient;
+    public static dns = Dns;
+    public static payments = Payments;
 
     public static ledger = {
         TransportWebUSB,
@@ -663,7 +703,9 @@ export default class TonWeb {
     public BlockSubscription = $BlockSubscription;
     public InMemoryBlockStorage = $InMemoryBlockStorage;
     public wallet = new $Wallets(this.provider);
+    public payments = new Payments(this.provider);
     public lockupWallet = LockupWallets;
+    public dns = new Dns(this.provider);
 
 
     constructor(public provider = new $HttpProvider()) {
@@ -731,7 +773,7 @@ export default class TonWeb {
 
     ): Promise<any> {
 
-        // @todo: type return value
+        // @todo type return value
 
         return this.provider.call(
             address.toString(),
@@ -743,4 +785,24 @@ export default class TonWeb {
 
 }
 
-// @todo: set window.TonWeb = TonWeb via webpack
+Object.assign(TonWeb.dns, {
+    DnsCollection,
+    DnsItem,
+});
+
+Object.assign(TonWeb.payments, {
+    PaymentChannel,
+});
+
+// @todo set window.TonWeb = TonWeb via webpack
+
+
+//======//
+// NEXT //
+//======//
+
+/**
+ * These a new symbols added to the original vanilla TonWeb.
+ */
+
+export { CellSlice } from './boc/cell/cell-slice';

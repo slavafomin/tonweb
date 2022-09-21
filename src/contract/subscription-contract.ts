@@ -1,7 +1,7 @@
 
 import BN from 'bn.js';
 
-import { Cell } from '../boc/cell';
+import { Cell } from '../boc/cell/cell';
 import { HttpProvider } from '../http-provider/http-provider';
 import { Address } from '../utils/address';
 import { Contract, ContractMethods, ContractOptions, Method } from './contract';
@@ -139,7 +139,7 @@ export class SubscriptionContract extends Contract<
         const cell = new Cell();
         cell.bits.writeAddress(this.options.wallet);
         cell.bits.writeAddress(this.options.beneficiary);
-        cell.bits.writeGrams(this.options.amount);
+        cell.bits.writeCoins(this.options.amount);
         cell.bits.writeUint(this.options.period, 32);
         cell.bits.writeUint(this.options.startAt, 32); // start_time
         cell.bits.writeUint(this.options.timeout, 32);

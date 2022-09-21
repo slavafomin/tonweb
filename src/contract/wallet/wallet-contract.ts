@@ -4,7 +4,7 @@ import nacl from 'tweetnacl';
 
 import { expectBN } from '../../utils/type-guards';
 import { Contract, ContractMethods, ContractOptions, Method, Query } from '../contract';
-import { Cell } from '../../boc/cell';
+import { Cell } from '../../boc/cell/cell';
 import { HttpProvider } from '../../http-provider/http-provider';
 import { Address, AddressType } from '../../utils/address';
 
@@ -56,10 +56,10 @@ export interface ExternalMessage {
  * Abstract standard wallet class.
  */
 export class WalletContract<
-    WalletType extends WalletContractOptions = WalletContractOptions,
+    OptionsType extends WalletContractOptions = WalletContractOptions,
     MethodsType extends WalletContractMethods = WalletContractMethods
 
-> extends Contract<WalletType, MethodsType> {
+> extends Contract<OptionsType, MethodsType> {
 
     constructor(
         provider: HttpProvider,
@@ -89,7 +89,7 @@ export class WalletContract<
             ),
 
             seqno: () => ({
-                // @todo: why do we have sub-method here?
+                // @todo why do we have sub-method here?
                 //        should we rename `seqno` to `getSeqno`
                 //        and return the result directly?
                 call: async () => {
@@ -103,12 +103,13 @@ export class WalletContract<
 
                     } catch (error) {
                         // Ignoring the error
-                        // @todo: it doesn't look like a
+                        // @todo it doesn't look like a
                         //        good idea to silently ignore
                         //        the errors
                     }
                 }
-            })
+            }),
+
         }
 
     }
@@ -130,7 +131,7 @@ export class WalletContract<
 
     ): Promise<Query> {
 
-        // @todo: we should return ExternalMessage instead of Query
+        // @todo we should return ExternalMessage instead of Query
         //        but we will need to add `signature` to the result
 
         if (!this.options.publicKey) {
@@ -180,7 +181,7 @@ export class WalletContract<
     public async createTransferMessage(
         /**
          * `nacl.KeyPair.secretKey`
-         * @todo: improve the description
+         * @todo improve the description
          */
         secretKey: Uint8Array,
         address: AddressType,
@@ -249,7 +250,7 @@ export class WalletContract<
         signingMessage: Cell,
         /**
          * `nacl.KeyPair.secretKey`
-         * @todo: improve the description
+         * @todo improve the description
          */
         secretKey: Uint8Array,
         seqno: number,
@@ -326,7 +327,7 @@ export class WalletContract<
 
         let payloadCell = new Cell();
 
-        // @todo: throw more meaningful error
+        // @todo throw more meaningful error
         //        on cell bytes overflow
 
         if (typeof payload === 'string') {

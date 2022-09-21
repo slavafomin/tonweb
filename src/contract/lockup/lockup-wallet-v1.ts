@@ -1,7 +1,7 @@
 
 import BN from 'bn.js';
 
-import { Cell } from '../../boc/cell';
+import { Cell } from '../../boc/cell/cell';
 import { HttpProvider } from '../../http-provider/http-provider';
 import { base64ToBytes } from '../../utils/base64';
 import { expectArray, expectBN } from '../../utils/type-guards';
@@ -166,10 +166,10 @@ export class LockupWalletV1 extends WalletContract<
         cell.bits.writeUint(this.options.walletId, 32);
         cell.bits.writeBytes(this.options.publicKey);
 
-        // @todo: write config.config_public_key
+        // @todo write config.config_public_key
         //        (need to sort out encoding - the params come in base64),
 
-        // @todo: write the dict of allowed destinations
+        // @todo write the dict of allowed destinations
         //        (address is a key to an empty value).
 
         cell.bits.writeBytes(base64ToBytes(this.options.config.config_public_key));
@@ -180,9 +180,9 @@ export class LockupWalletV1 extends WalletContract<
             cell.bits.writeUint(0, 1);
         }
 
-        cell.bits.writeGrams(0);   // .store_grams(total_locked_value)
+        cell.bits.writeCoins(0);   // .store_grams(total_locked_value)
         cell.bits.writeUint(0, 1); // empty locked dict
-        cell.bits.writeGrams(0);   // .store_grams(total_restricted_value)
+        cell.bits.writeCoins(0);   // .store_grams(total_restricted_value)
         cell.bits.writeUint(0, 1); // empty locked dict
 
         return cell;

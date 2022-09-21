@@ -1,6 +1,7 @@
 
 import BN from 'bn.js';
-import { Cell } from '../boc/cell';
+
+import { Cell } from '../boc/cell/cell';
 
 
 export function expectArray<Type = any>(value: any): Array<Type> {
@@ -34,6 +35,20 @@ export function expectCell(value: any): Cell {
     }
 
     return value;
+
+}
+
+export function expectMaybeCell(value: any): (Cell | undefined) {
+
+    return (!IsTvmNull(value) ? expectCell(value) : undefined);
+
+}
+
+export function IsTvmNull(value: any) {
+
+    // NULL-values in TVM are represented
+    // by an empty list.
+    return (Array.isArray(value) && value.length === 0);
 
 }
 

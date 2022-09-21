@@ -1,18 +1,16 @@
 
-import { Cell } from '../../boc/cell';
-import { HttpProvider } from '../../http-provider/http-provider';
+import TonWeb from '__tonweb__';
+
+import {
+    Cell as CellType,
+    HttpProvider as HttpProviderType,
+    TransferMethodParams,
+    WalletContractOptions,
+
+} from '__tonweb__';
+
 import { TestHttpProvider } from '../../http-provider/test-http-provider';
-import { bytesToBase64 } from '../../utils/base64';
-import { LockupWalletV1 } from '../lockup/lockup-wallet-v1';
-import { SimpleWalletContractR1 } from './simple/simple-wallet-contract-r1';
-import { SimpleWalletContractR2 } from './simple/simple-wallet-contract-r2';
-import { SimpleWalletContractR3 } from './simple/simple-wallet-contract-r3';
-import { WalletV2ContractR1 } from './v2/wallet-v2-contract-r1';
-import { WalletV2ContractR2 } from './v2/wallet-v2-contract-r2';
-import { WalletV3ContractR1 } from './v3/wallet-v3-contract-r1';
-import { WalletV3ContractR2 } from './v3/wallet-v3-contract-r2';
-import { WalletV4ContractR1 } from './v4/wallet-v4-contract-r1';
-import { WalletV4ContractR2 } from './v4/wallet-v4-contract-r2';
+import { WalletContract } from './wallet-contract';
 
 import {
     testAddress,
@@ -22,12 +20,19 @@ import {
 
 } from '../../test/common';
 
-import {
-    TransferMethodParams,
-    WalletContract,
-    WalletContractOptions,
+const { Cell } = TonWeb.boc;
+const { bytesToBase64 } = TonWeb.utils;
 
-} from './wallet-contract';
+const LockupWalletV1 = TonWeb.LockupWallets.LockupWalletV1;
+const SimpleWalletContractR1 = TonWeb.Wallets.all.simpleR1;
+const SimpleWalletContractR2 = TonWeb.Wallets.all.simpleR2;
+const SimpleWalletContractR3 = TonWeb.Wallets.all.simpleR3;
+const WalletV2ContractR1 = TonWeb.Wallets.all.v2R1;
+const WalletV2ContractR2 = TonWeb.Wallets.all.v2R2;
+const WalletV3ContractR1 = TonWeb.Wallets.all.v3R1;
+const WalletV3ContractR2 = TonWeb.Wallets.all.v3R2;
+const WalletV4ContractR1 = TonWeb.Wallets.all.v4R1;
+const WalletV4ContractR2 = TonWeb.Wallets.all.v4R2;
 
 
 interface WalletTestDescriptor {
@@ -57,7 +62,7 @@ interface WalletTestDescriptor {
  * All reference values are taken from the
  * vanilla version of the library.
  *
- * @todo: "addressMC" values are now taken from the output
+ * @todo "addressMC" values are now taken from the output
  *        of the library directly. We need another source
  *        of truth to validate these tests.
  */
@@ -301,9 +306,9 @@ for (const test of wallets) {
                 createWallet().getAddress()
             );
 
-            expect(address.toString(true, true))
+            (expect(address.toString(true, true))
                 .toEqual(test.address)
-            ;
+            );
 
         });
 
@@ -318,9 +323,9 @@ for (const test of wallets) {
                 }).getAddress()
             );
 
-            expect(address.toString(false))
+            (expect(address.toString(false))
                 .toEqual(test.addressMC)
-            ;
+            );
 
         });
 
@@ -330,9 +335,9 @@ for (const test of wallets) {
                 seqno: 0,
             });
 
-            expect(queryBocString)
+            (expect(queryBocString)
                 .toEqual(test.transferQueryBoc64.seqno0)
-            ;
+            );
 
         });
 
@@ -342,9 +347,9 @@ for (const test of wallets) {
                 seqno: 1,
             });
 
-            expect(queryBocString)
+            (expect(queryBocString)
                 .toEqual(test.transferQueryBoc64.seqno1)
-            ;
+            );
 
         });
 
@@ -355,9 +360,9 @@ for (const test of wallets) {
                 sendMode: (128 + 32 + 2),
             });
 
-            expect(queryBocString)
+            (expect(queryBocString)
                 .toEqual(test.transferQueryBoc64.seqno1SendMode)
-            ;
+            );
 
         });
 
@@ -368,9 +373,9 @@ for (const test of wallets) {
                 payload: 'MARCO',
             });
 
-            expect(queryBocString)
+            (expect(queryBocString)
                 .toEqual(test.transferQueryBoc64.seqno1PayloadStr)
-            ;
+            );
 
         });
 
@@ -381,9 +386,9 @@ for (const test of wallets) {
                 payload: '1B: A, 2B: Ω, 3B: ಄, 4B: 𓅱',
             });
 
-            expect(queryBocString)
+            (expect(queryBocString)
                 .toEqual(test.transferQueryBoc64.seqno1PayloadMBStr)
-            ;
+            );
 
         });
 
@@ -394,9 +399,9 @@ for (const test of wallets) {
                 payload: Uint8Array.from([1, 3, 3, 7]),
             });
 
-            expect(queryBocString)
+            (expect(queryBocString)
                 .toEqual(test.transferQueryBoc64.seqno1PayloadBytes)
-            ;
+            );
 
         });
 
@@ -407,7 +412,7 @@ for (const test of wallets) {
             payload.bits.writeBit(true);
             payload.bits.writeBit(false);
             payload.bits.writeBit(true);
-            payload.bits.writeGrams(100500);
+            payload.bits.writeCoins(100500);
             payload.bits.writeString('MARCO');
             payload.bits.writeAddress(testAddress);
 
@@ -416,9 +421,9 @@ for (const test of wallets) {
                 payload,
             });
 
-            expect(queryBocString)
+            (expect(queryBocString)
                 .toEqual(test.transferQueryBoc64.seqno1PayloadCell)
-            ;
+            );
 
         });
 
@@ -469,16 +474,16 @@ for (const test of wallets) {
             );
 
             // Address
-            expect(initMessage.address.toString(true, true))
+            (expect(initMessage.address.toString(true, true))
                 .toEqual(test.address)
-            ;
+            );
 
             // Message
             const messageBoc = await initMessage.message.toBoc();
             const messageBocB64 = bytesToBase64(messageBoc);
             expect(messageBocB64).toEqual(test.deployQueryBoc64);
 
-            // @todo: test other properties of the external message
+            // @todo test other properties of the external message
 
         });
 
@@ -508,7 +513,7 @@ for (const test of wallets) {
 
 
     function createWallet(args?: {
-        provider?: HttpProvider;
+        provider?: HttpProviderType;
         options?: Partial<WalletContractOptions>;
 
     }): WalletContract {
@@ -596,7 +601,7 @@ for (const test of wallets) {
 
     async function testTransferMessage(options: {
         seqno: number;
-        payload?: (string | Uint8Array | Cell);
+        payload?: (string | Uint8Array | CellType);
         sendMode?: number;
         expectedMessageBocB64: string;
     }) {
@@ -623,16 +628,16 @@ for (const test of wallets) {
         );
 
         // Address
-        expect(transferMessage.address.toString(true, true))
+        (expect(transferMessage.address.toString(true, true))
             .toEqual(test.address)
-        ;
+        );
 
         // Message
         const messageBoc = await transferMessage.message.toBoc();
         const messageBocB64 = bytesToBase64(messageBoc);
         expect(messageBocB64).toEqual(expectedMessageBocB64);
 
-        // @todo: test other properties of the external message
+        // @todo test other properties of the external message
 
     }
 

@@ -2,12 +2,12 @@
 import Transport from '@ledgerhq/hw-transport';
 import BN from 'bn.js';
 
-import { Cell } from '../boc/cell';
+import { Cell } from '../boc/cell/cell';
 import { Contract, Method, Query } from '../contract/contract';
 import { WalletContract } from '../contract/wallet/wallet-contract';
 import TonWeb from '../index';
 import { Address, AddressType } from '../utils/address';
-import { bytesToHex } from '../utils/common';
+import { bytesToHex } from '../utils/hex';
 
 
 export interface AppConfiguration {
@@ -29,8 +29,8 @@ export interface SignResult {
 
 export class AppTon {
 
-    // @todo: use enum for this
-    // @todo: these should be static
+    // @todo use enum for this
+    // @todo these should be static
     public readonly ADDRESS_FORMAT_HEX = 0;
     public readonly ADDRESS_FORMAT_USER_FRIENDLY = 1;
     public readonly ADDRESS_FORMAT_URL_SAFE = 2;
@@ -46,7 +46,7 @@ export class AppTon {
       public readonly ton: TonWeb
     ) {
 
-        // @todo: find out why decorateAppAPIMethods is called
+        // @todo find out why decorateAppAPIMethods is called
         // const scrambleKey = "w0w";
         // transport.decorateAppAPIMethods(
         //     this,
@@ -126,8 +126,12 @@ export class AppTon {
                 buffer
             );
         const len = response[0];
-        const addressHex = new Uint8Array(response.slice(1, 1 + len));
-        const address = new Address('0:' + bytesToHex(addressHex));
+        const addressHex = new Uint8Array(
+            response.slice(1, 1 + len)
+        );
+        const address = new Address(
+            '0:' + bytesToHex(addressHex)
+        );
         return { address };
     }
 
@@ -178,7 +182,7 @@ export class AppTon {
 
     ): Promise<Method> {
 
-        // @todo: don't use magic numbers
+        // @todo don't use magic numbers
         const sendMode = 3;
 
         const query = await wallet.createTransferMessage(
